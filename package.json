@@ -1,0 +1,41 @@
+{
+  "name": "pen-fight",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pen Fight - A multiplayer browser-based pen fighting game",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
+    "build": "npm run build --workspace=backend && npm run build --workspace=frontend",
+    "start": "npm run start --workspace=backend",
+    "db:migrate": "npx prisma migrate dev --schema=prisma/schema.prisma",
+    "db:seed": "npx ts-node prisma/seed.ts",
+    "db:studio": "npx prisma studio --schema=prisma/schema.prisma",
+    "db:reset": "npx prisma migrate reset --schema=prisma/schema.prisma"
+  },
+  "workspaces": [
+    "backend",
+    "frontend",
+    "shared"
+  ],
+  "prisma": {
+    "schema": "prisma/schema.prisma",
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "bcryptjs": "^2.4.3",
+    "concurrently": "^8.2.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.3"
+  },
+  "allowScripts": {
+    "@prisma/client@5.22.0": true,
+    "prisma@5.22.0": true,
+    "@prisma/engines@5.22.0": true,
+    "esbuild@0.21.5": true
+  }
+}

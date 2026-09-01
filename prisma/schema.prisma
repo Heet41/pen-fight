@@ -1,0 +1,573 @@
+// Pen Fight - Complete Prisma Schema (Phase 2)
+// All tables required through Phase 13
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// USERS & AUTHENTICATION
+// ═══════════════════════════════════════════════════════════════════════════
+
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique @db.VarChar(30)
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash")
+  avatar       String?  @db.VarChar(500)
+  isAdmin      Boolean  @default(false) @map("is_admin")
+  isGuest      Boolean  @default(false) @map("is_guest")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  playerStats      PlayerStats?
+  playerXp         PlayerXp?
+  playerPresence   PlayerPresence?
+  hostedRooms      Room[]             @relation("HostedRooms")
+  guestRooms       Room[]             @relation("GuestRooms")
+  matchesAsP1      Match[]            @relation("Player1Matches")
+  matchesAsP2      Match[]            @relation("Player2Matches")
+  wonMatches       Match[]            @relation("WonMatches")
+  matchPlayers     MatchPlayer[]
+  matchEvents      MatchEvent[]
+  xpTransactions   XpTransaction[]
+  userAchievements UserAchievement[]
+  rankedRatings    RankedRating[]
+  matchmakingQueue MatchmakingQueue?
+  sentFriends      Friend[]           @relation("FriendSender")
+  receivedFriends  Friend[]           @relation("FriendReceiver")
+  sentInvites      RoomInvite[]       @relation("InviteSender")
+  receivedInvites  RoomInvite[]       @relation("InviteReceiver")
+  notifications    Notification[]
+  equippedItems    EquippedItem[]
+  userInventory    UserInventory[]
+  sentReactions    Reaction[]
+
+  @@index([username])
+  @@index([email])
+  @@map("users")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PLAYER STATS & PROGRESSION
+// ═══════════════════════════════════════════════════════════════════════════
+
+model PlayerStats {
+  id             String   @id @default(uuid())
+  userId         String   @unique @map("user_id")
+  gamesPlayed    Int      @default(0) @map("games_played")
+  gamesWon       Int      @default(0) @map("games_won")
+  gamesLost      Int      @default(0) @map("games_lost")
+  winRate        Float    @default(0) @map("win_rate")
+  rating         Int      @default(1000)
+  totalShots     Int      @default(0) @map("total_shots")
+  bestWinStreak  Int      @default(0) @map("best_win_streak")
+  currentStreak  Int      @default(0) @map("current_streak")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([rating])
+  @@index([gamesWon])
+  @@map("player_stats")
+}
+
+model PlayerXp {
+  userId       String   @id @map("user_id")
+  totalXp      Int      @default(0) @map("total_xp")
+  currentLevel Int      @default(1) @map("current_level")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([totalXp])
+  @@index([currentLevel])
+  @@map("player_xp")
+}
+
+model XpTransaction {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  amount    Int
+  reason    String   @db.VarChar(100)
+  matchId   String?  @map("match_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match Match? @relation(fields: [matchId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("xp_transactions")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ROOMS
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Room {
+  id                 String     @id @default(uuid())
+  roomCode           String     @unique @db.VarChar(8) @map("room_code")
+  hostUserId         String?    @map("host_user_id")
+  guestUserId        String?    @map("guest_user_id")
+  status             RoomStatus @default(WAITING)
+  isPrivate          Boolean    @default(true) @map("is_private")
+  isLocked           Boolean    @default(false) @map("is_locked")
+  roomName           String?    @db.VarChar(50) @map("room_name")
+  maxPlayers         Int        @default(2) @map("max_players")
+  gameMode           GameMode   @default(CASUAL_ONLINE) @map("game_mode")
+  arena              String     @default("classic") @db.VarChar(30)
+  turnDurationSecs   Int        @default(30) @map("turn_duration_secs")
+  matchDurationSecs  Int?       @map("match_duration_secs")
+  allowSpectators    Boolean    @default(false) @map("allow_spectators")
+  allowRematch       Boolean    @default(true) @map("allow_rematch")
+  isFriendly         Boolean    @default(true) @map("is_friendly")
+  createdAt          DateTime   @default(now()) @map("created_at")
+  expiresAt          DateTime   @map("expires_at")
+
+  host    User?   @relation("HostedRooms", fields: [hostUserId], references: [id], onDelete: SetNull)
+  guest   User?   @relation("GuestRooms", fields: [guestUserId], references: [id], onDelete: SetNull)
+  matches Match[]
+  invites RoomInvite[]
+
+  @@index([roomCode])
+  @@index([status])
+  @@index([isPrivate, status])
+  @@index([expiresAt])
+  @@map("rooms")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MATCHES
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Match {
+  id          String      @id @default(uuid())
+  roomId      String?     @map("room_id")
+  mode        GameMode    @default(LOCAL)
+  status      MatchStatus @default(WAITING)
+  player1Id   String?     @map("player1_id")
+  player2Id   String?     @map("player2_id")
+  winnerId    String?     @map("winner_id")
+  arena       String      @default("classic") @db.VarChar(30)
+  seasonId    String?     @map("season_id")
+  // Ranking snapshot before match
+  p1RatingBefore Int?     @map("p1_rating_before")
+  p2RatingBefore Int?     @map("p2_rating_before")
+  p1RatingAfter  Int?     @map("p1_rating_after")
+  p2RatingAfter  Int?     @map("p2_rating_after")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  startedAt   DateTime?   @map("started_at")
+  completedAt DateTime?   @map("completed_at")
+
+  room         Room?          @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  player1      User?          @relation("Player1Matches", fields: [player1Id], references: [id], onDelete: SetNull)
+  player2      User?          @relation("Player2Matches", fields: [player2Id], references: [id], onDelete: SetNull)
+  winner       User?          @relation("WonMatches", fields: [winnerId], references: [id], onDelete: SetNull)
+  season       Season?        @relation(fields: [seasonId], references: [id], onDelete: SetNull)
+  matchPlayers MatchPlayer[]
+  events       MatchEvent[]
+  xpTransactions XpTransaction[]
+  reactions    Reaction[]
+
+  @@index([status])
+  @@index([mode])
+  @@index([player1Id])
+  @@index([player2Id])
+  @@index([createdAt])
+  @@index([seasonId])
+  @@map("matches")
+}
+
+model MatchPlayer {
+  id       String      @id @default(uuid())
+  matchId  String      @map("match_id")
+  userId   String      @map("user_id")
+  side     PlayerSide
+  result   MatchResult @default(PENDING)
+  shots    Int         @default(0)
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, userId])
+  @@unique([matchId, side])
+  @@index([userId])
+  @@map("match_players")
+}
+
+model MatchEvent {
+  id        String   @id @default(uuid())
+  matchId   String   @map("match_id")
+  playerId  String?  @map("player_id")
+  eventType String   @map("event_type") @db.VarChar(50)
+  eventData Json?    @map("event_data")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  match  Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  player User? @relation(fields: [playerId], references: [id], onDelete: SetNull)
+
+  @@index([matchId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@map("match_events")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ACHIEVEMENTS
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Achievement {
+  id               String          @id @default(uuid())
+  name             String          @unique @db.VarChar(100)
+  description      String          @db.VarChar(500)
+  icon             String          @db.VarChar(10)
+  requirementType  String          @map("requirement_type") @db.VarChar(50)
+  requirementValue Int             @map("requirement_value")
+  rarity           AchievementRarity @default(COMMON)
+  xpReward         Int             @default(0) @map("xp_reward")
+  createdAt        DateTime        @default(now()) @map("created_at")
+
+  userAchievements UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  achievementId String   @map("achievement_id")
+  unlockedAt    DateTime @default(now()) @map("unlocked_at")
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@map("user_achievements")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RANKED SYSTEM
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Season {
+  id        String       @id @default(uuid())
+  name      String       @unique @db.VarChar(100)
+  startDate DateTime     @map("start_date")
+  endDate   DateTime     @map("end_date")
+  status    SeasonStatus @default(UPCOMING)
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  rankedRatings RankedRating[]
+  matches       Match[]
+
+  @@index([status])
+  @@index([startDate, endDate])
+  @@map("seasons")
+}
+
+model RankedRating {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  seasonId    String   @map("season_id")
+  rating      Int      @default(1000)
+  rank        String   @default("BRONZE") @db.VarChar(20)
+  division    Int      @default(3)       // 3=III, 2=II, 1=I
+  peakRating  Int      @default(1000) @map("peak_rating")
+  peakRank    String   @default("BRONZE") @map("peak_rank") @db.VarChar(20)
+  wins        Int      @default(0)
+  losses      Int      @default(0)
+  winStreak   Int      @default(0) @map("win_streak")
+  isPlacement Boolean  @default(true) @map("is_placement")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  season Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, seasonId])
+  @@index([seasonId, rating(sort: Desc)])
+  @@index([userId])
+  @@map("ranked_ratings")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MATCHMAKING
+// ═══════════════════════════════════════════════════════════════════════════
+
+model MatchmakingQueue {
+  id        String               @id @default(uuid())
+  userId    String               @unique @map("user_id")
+  rating    Int
+  region    String               @default("global") @db.VarChar(20)
+  joinedAt  DateTime             @default(now()) @map("joined_at")
+  status    MatchmakingStatus    @default(SEARCHING)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, rating])
+  @@index([joinedAt])
+  @@map("matchmaking_queue")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SOCIAL
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Friend {
+  id         String       @id @default(uuid())
+  senderId   String       @map("sender_id")
+  receiverId String       @map("receiver_id")
+  status     FriendStatus @default(PENDING)
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+
+  sender   User @relation("FriendSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("FriendReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+  @@index([receiverId, status])
+  @@index([senderId, status])
+  @@map("friends")
+}
+
+model RoomInvite {
+  id         String       @id @default(uuid())
+  roomId     String       @map("room_id")
+  senderId   String       @map("sender_id")
+  receiverId String       @map("receiver_id")
+  status     InviteStatus @default(PENDING)
+  expiresAt  DateTime     @map("expires_at")
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  room     Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender   User @relation("InviteSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("InviteReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([receiverId, status])
+  @@index([expiresAt])
+  @@map("room_invites")
+}
+
+model PlayerPresence {
+  userId    String        @id @map("user_id")
+  status    PresenceStatus @default(OFFLINE)
+  lastSeen  DateTime      @default(now()) @map("last_seen")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@map("player_presence")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  title     String           @db.VarChar(200)
+  body      String           @db.VarChar(500)
+  data      Json?
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// COSMETICS / ECONOMY ARCHITECTURE
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Item {
+  id          String   @id @default(uuid())
+  name        String   @unique @db.VarChar(100)
+  description String   @db.VarChar(500)
+  type        ItemType
+  rarity      ItemRarity @default(COMMON)
+  icon        String   @db.VarChar(500)
+  data        Json?    // Extra metadata (colors, effects, etc.)
+  isDefault   Boolean  @default(false) @map("is_default")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  userInventory  UserInventory[]
+  equippedItems  EquippedItem[]
+
+  @@index([type])
+  @@map("items")
+}
+
+model UserInventory {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  itemId     String   @map("item_id")
+  obtainedAt DateTime @default(now()) @map("obtained_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemId])
+  @@index([userId])
+  @@map("user_inventory")
+}
+
+model EquippedItem {
+  userId String   @map("user_id")
+  slot   ItemType // One equipped item per slot type
+  itemId String   @map("item_id")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@id([userId, slot])
+  @@map("equipped_items")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// REACTIONS (rate-limited, not persisted permanently unless needed)
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Reaction {
+  id        String   @id @default(uuid())
+  matchId   String   @map("match_id")
+  userId    String   @map("user_id")
+  emoji     String   @db.VarChar(10)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Keep only for moderation purposes — TTL cleanup handled by cron
+  @@index([matchId])
+  @@index([createdAt])
+  @@map("reactions")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ENUMS
+// ═══════════════════════════════════════════════════════════════════════════
+
+enum RoomStatus {
+  WAITING
+  READY
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+  EXPIRED
+}
+
+enum GameMode {
+  LOCAL
+  AI_EASY
+  AI_MEDIUM
+  AI_HARD
+  CASUAL_ONLINE
+  RANKED
+  CUSTOM
+}
+
+enum MatchStatus {
+  WAITING
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+enum PlayerSide {
+  PLAYER1
+  PLAYER2
+}
+
+enum MatchResult {
+  PENDING
+  WIN
+  LOSS
+  DRAW
+  ABANDONED
+}
+
+enum SeasonStatus {
+  UPCOMING
+  ACTIVE
+  COMPLETED
+}
+
+enum MatchmakingStatus {
+  SEARCHING
+  MATCHED
+  CANCELLED
+}
+
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  BLOCKED
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+enum PresenceStatus {
+  ONLINE
+  IN_MENU
+  SEARCHING
+  IN_MATCH
+  OFFLINE
+}
+
+enum AchievementRarity {
+  COMMON
+  UNCOMMON
+  RARE
+  EPIC
+  LEGENDARY
+}
+
+enum NotificationType {
+  FRIEND_REQUEST
+  FRIEND_ACCEPTED
+  ROOM_INVITE
+  MATCH_FOUND
+  RANK_PROMOTION
+  RANK_DEMOTION
+  ACHIEVEMENT_UNLOCKED
+  LEVEL_UP
+  SEASON_ENDED
+  SYSTEM
+}
+
+enum ItemType {
+  PEN_SKIN
+  TRAIL_EFFECT
+  HIT_EFFECT
+  AVATAR_FRAME
+  TITLE
+  PROFILE_BADGE
+  REACTION_PACK
+}
+
+enum ItemRarity {
+  COMMON
+  UNCOMMON
+  RARE
+  EPIC
+  LEGENDARY
+}

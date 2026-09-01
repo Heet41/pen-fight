@@ -1,0 +1,187 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── CSS Custom Properties ─────────────────────────────────────────────────── */
+:root {
+  --neon-blue: #00d4ff;
+  --neon-purple: #a855f7;
+  --neon-green: #22c55e;
+  --dark-900: #0a0a0f;
+  --dark-800: #0f0f1a;
+  --dark-700: #151525;
+}
+
+/* ─── Base Styles ────────────────────────────────────────────────────────────── */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--dark-900);
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--dark-800);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 212, 255, 0.3);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 212, 255, 0.6);
+  }
+
+  /* Selection color */
+  ::selection {
+    background: rgba(0, 212, 255, 0.3);
+    color: white;
+  }
+}
+
+/* ─── Component Classes ─────────────────────────────────────────────────────── */
+@layer components {
+  /* Glass card */
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl;
+  }
+
+  /* Neon button */
+  .btn-neon {
+    @apply relative px-6 py-3 font-semibold rounded-xl transition-all duration-300
+           bg-gradient-to-r from-neon-blue to-neon-purple text-white
+           hover:shadow-neon-blue hover:scale-105 active:scale-95
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
+  }
+
+  /* Secondary button */
+  .btn-ghost {
+    @apply px-6 py-3 font-semibold rounded-xl transition-all duration-300
+           border border-white/20 text-white/80 hover:bg-white/10 hover:border-white/40
+           active:scale-95 disabled:opacity-50;
+  }
+
+  /* Game title font */
+  .font-game {
+    font-family: 'Orbitron', monospace;
+  }
+
+  /* Neon text */
+  .text-neon {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-neon-blue to-neon-purple;
+  }
+
+  /* Input field */
+  .input-field {
+    @apply w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white
+           placeholder:text-white/30 focus:outline-none focus:border-neon-blue/50 
+           focus:bg-white/10 transition-all duration-200;
+  }
+
+  /* Animated border */
+  .border-animated {
+    position: relative;
+  }
+
+  .border-animated::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+    border-radius: inherit;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  /* Pen glow effect */
+  .pen-glow-blue {
+    filter: drop-shadow(0 0 12px rgba(0, 212, 255, 0.8));
+  }
+
+  .pen-glow-purple {
+    filter: drop-shadow(0 0 12px rgba(168, 85, 247, 0.8));
+  }
+
+  /* Loading skeleton */
+  .skeleton {
+    @apply bg-white/10 animate-pulse rounded;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+}
+
+/* ─── Utilities ─────────────────────────────────────────────────────────────── */
+@layer utilities {
+  /* Grid pattern overlay */
+  .bg-grid-pattern {
+    background-image: 
+      linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
+  /* Noise texture */
+  .bg-noise {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E");
+  }
+}
+
+/* ─── Page Transition ────────────────────────────────────────────────────────── */
+.page-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.page-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-exit-active {
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* ─── Canvas Game Arena ──────────────────────────────────────────────────────── */
+canvas {
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+
+/* ─── Mobile-first adjustments ──────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .font-game {
+    letter-spacing: -0.02em;
+  }
+}
