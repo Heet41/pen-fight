@@ -1,8 +1,11 @@
 import axios from 'axios';
 
 // Support production external API URL or default to relative path for reverse proxy/monolith
-const rawBaseUrl = import.meta.env.VITE_API_URL || '';
-const baseURL = rawBaseUrl ? `${rawBaseUrl.replace(/\/$/, '')}/api` : '/api';
+const rawBaseUrl =
+  import.meta.env.VITE_API_URL ||
+  'https://pen-fight-backend.onrender.com';
+
+const baseURL = `${rawBaseUrl.replace(/\/$/, '')}/api`;
 
 export const api = axios.create({
   baseURL,
