@@ -38,7 +38,7 @@ interface GameArenaProps {
   p2StrokeColor?: string;
   isMyTurn?: boolean;
   mySide?: PlayerSide;
-  onTurnEnd?: (p1: PenState, p2: PenState, winner?: PlayerSide) => void;
+  onTurnEnd?: (p1: PenState, p2: PenState, winner?: PlayerSide, nextTurn?: PlayerSide) => void;
   onShotFired?: (angle: number, power: number, side: PlayerSide) => void;
   winner?: PlayerSide | null;
   onRematch?: () => void;
@@ -260,17 +260,24 @@ export default function GameArena({
           }
 
           if (matchWinner) {
-            sound.playVictory();
-          } else {
-            // Switch Turn
-            const nextTurn = currentTurnRef.current === 'player1' ? 'player2' : 'player1';
-            currentTurnRef.current = nextTurn;
-            setCurrentTurn(nextTurn);
-          }
+  sound.playVictory();
+} else {
+  // Switch Turn
+  const nextTurn =
+    currentTurnRef.current === 'player1' ? 'player2' : 'player1';
 
-          if (onTurnEnd) {
-            onTurnEnd(p1Ref.current, p2Ref.current, matchWinner);
-          }
+  currentTurnRef.current = nextTurn;
+  setCurrentTurn(nextTurn);
+}
+
+if (onTurnEnd) {
+  onTurnEnd(
+    p1Ref.current,
+    p2Ref.current,
+    matchWinner,
+    currentTurnRef.current
+  );
+}
         }
       }
 
@@ -293,7 +300,7 @@ export default function GameArena({
         !isSimulatingRef.current &&
         !winner &&
         isInteractive &&
-        (mySide === currentTurnRef.current || mySide === 'player1')
+        (mySide === currentTurnRef.current)
       ) {
         const activePen = currentTurnRef.current === 'player1' ? p1Ref.current : p2Ref.current;
         const targetPen = currentTurnRef.current === 'player1' ? p2Ref.current : p1Ref.current;
@@ -447,13 +454,27 @@ export default function GameArena({
         {/* Winner Overlay Modal */}
         {winner && (
           <div className="absolute inset-0 bg-dark-900/80 backdrop-blur-md flex flex-col items-center justify-center p-6 z-30 animate-fade-in">
-            <div className="text-6xl mb-3 animate-bounce">🏆</div>
-            <h2 className="font-game font-black text-3xl sm:text-4xl text-yellow-400 mb-1">
-              VICTORY!
-            </h2>
-            <p className="text-white/70 text-sm mb-6">
-              <strong className="text-white">{winner === 'player1' ? p1Name : p2Name}</strong> knocked the opponent out of the arena!
-            </p>
+            <div className="text-6xl mb-3 animate-bounce">
+  {winner === 'player1' ? '🏆' : '💀'}
+</div>
+
+<h2 className={`font-game font-black text-3xl sm:text-4xl mb-1 ${
+  winner === 'player1' ? 'text-yellow-400' : 'text-red-400'
+}`}>
+  {winner === 'player1' ? 'VICTORY!' : 'DEFEAT!'}
+</h2>
+
+<p className="text-white/70 text-sm mb-6">
+  {winner === 'player1' ? (
+    <>
+      <strong className="text-white">{p1Name}</strong> knocked the opponent out of the arena!
+    </>
+  ) : (
+    <>
+      <strong className="text-white">{p2Name}</strong> knocked you out of the arena!
+    </>
+  )}
+</p>
             <div className="flex gap-4">
               <button
                 onClick={() => {

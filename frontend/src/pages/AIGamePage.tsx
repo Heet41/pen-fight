@@ -21,7 +21,7 @@ export default function AIGamePage() {
     p2: { id: 'player2', x: 580, y: 250, velocityX: 0, velocityY: 0, radius: 18, mass: 1.0, isOut: false },
   });
 
-  const handleTurnEnd = async (p1: PenState, p2: PenState, matchWinner?: PlayerSide) => {
+  const handleTurnEnd = async (p1: PenState, p2: PenState, matchWinner?: PlayerSide, nextTurn?: PlayerSide) => {
     pensRef.current = { p1, p2 };
 
     if (matchWinner) {
@@ -77,6 +77,7 @@ export default function AIGamePage() {
 
     // If it is now AI's turn (Player 2)
     // Trigger AI thinking and shot after brief delay
+    if (nextTurn !== 'player2') return;
     setIsAiThinking(true);
     setTimeout(() => {
       if (p2.isOut || p1.isOut) return;
