@@ -377,70 +377,122 @@ if (onTurnEnd) {
   return (
     <div className="flex flex-col items-center w-full select-none">
       {/* ─── Match Top Bar ─────────────────────────────────────────────────── */}
-      <div className="w-full max-w-4xl flex items-center justify-between px-4 py-2.5 mb-3 rounded-xl glass-card border-white/10">
-        {/* Player 1 */}
-        <div className={`flex items-center gap-2.5 p-1.5 rounded-lg transition-all ${
-          currentTurn === 'player1' && !winner ? 'bg-cyan-500/20 border border-cyan-500/40 shadow-neon-blue' : 'opacity-70'
-        }`}>
+<div className="w-full max-w-4xl mb-3">
+  <div className="glass-card border-white/10 rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3">
+
+    {/* Players + VS */}
+    <div className="flex items-center justify-between gap-2">
+
+      {/* Player 1 */}
+      <div
+        className={`flex min-w-0 items-center gap-1.5 sm:gap-3 px-1.5 sm:px-2 py-1.5 rounded-xl transition-all duration-300 ${
+          currentTurn === 'player1' && !winner
+            ? 'bg-cyan-500/15 border border-cyan-400/40 shadow-neon-blue'
+            : 'border border-transparent opacity-60'
+        }`}
+      >
+        <div className="relative shrink-0">
           <img
             src={p1Avatar || 'https://api.dicebear.com/7.x/bottts/svg?seed=P1'}
             alt={p1Name}
-            className="w-8 h-8 rounded-full bg-cyan-500/20 border border-cyan-400/40"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-cyan-500/20 border border-cyan-400/40"
           />
-          <div>
-            <div className="text-xs font-bold text-cyan-400 flex items-center gap-1.5">
-              <span>{p1Name}</span>
-              {currentTurn === 'player1' && !winner && (
-                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-              )}
-            </div>
-            <div className="text-[10px] text-white/50">Blue Pen</div>
-          </div>
-        </div>
 
-        {/* Turn Status Banner */}
-        <div className="text-center">
-          {winner ? (
-            <div className="font-game font-black text-sm text-yellow-400 animate-bounce">
-              👑 {winner === 'player1' ? p1Name : p2Name} WINS!
-            </div>
-          ) : (
-            <div className="flex flex-col items-center">
-              <span className="text-[10px] uppercase font-mono tracking-widest text-white/40">
-                Current Turn
-              </span>
-              <span className={`text-xs font-game font-bold ${
-                currentTurn === 'player1' ? 'text-cyan-400' : 'text-orange-400'
-              }`}>
-                {currentTurn === 'player1' ? p1Name : p2Name}
-              </span>
-            </div>
+          {currentTurn === 'player1' && !winner && (
+            <span className="absolute -right-0.5 -bottom-0.5 w-3 h-3 rounded-full bg-cyan-400 border-2 border-dark-900 animate-pulse" />
           )}
         </div>
 
-        {/* Player 2 */}
-        <div className={`flex items-center gap-2.5 p-1.5 rounded-lg transition-all ${
-          currentTurn === 'player2' && !winner ? 'bg-orange-500/20 border border-orange-500/40' : 'opacity-70'
-        }`}>
-          <div className="text-right">
-            <div className="text-xs font-bold text-orange-400 flex items-center justify-end gap-1.5">
-              {currentTurn === 'player2' && !winner && (
-                <span className="w-2 h-2 rounded-full bg-orange-400 animate-ping" />
-              )}
-              <span>{p2Name}</span>
-            </div>
-            <div className="text-[10px] text-white/50">Red Pen</div>
+        <div className="min-w-0">
+          <div className="text-xs sm:text-sm font-bold text-cyan-400 truncate max-w-[90px] sm:max-w-[140px]">
+            {p1Name}
           </div>
-          <img
-            src={p2Avatar || 'https://api.dicebear.com/7.x/bottts/svg?seed=P2'}
-            alt={p2Name}
-            className="w-8 h-8 rounded-full bg-orange-500/20 border border-orange-400/40"
-          />
+          <div className="text-[9px] sm:text-[10px] text-white/40 uppercase tracking-wider">
+            Blue Pen
+          </div>
         </div>
       </div>
 
+      {/* Center Status */}
+      <div className="flex flex-col items-center justify-center shrink-0 px-2 sm:px-4">
+        {winner ? (
+          <div className="text-center">
+            <div className="text-[9px] uppercase tracking-[0.2em] text-yellow-400/60 mb-0.5">
+              Match Over
+            </div>
+            <div className="font-game font-black text-xs sm:text-sm text-yellow-400 animate-pulse">
+              👑 {winner === 'player1' ? p1Name : p2Name}
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="text-[8px] sm:text-[9px] uppercase tracking-[0.25em] text-white/30 font-mono mb-1">
+              Turn
+            </div>
+
+            <div
+              className={`px-2.5 sm:px-3 py-1 rounded-full border text-[9px] sm:text-[10px] font-game font-bold uppercase tracking-wider ${
+                currentTurn === 'player1'
+                  ? 'bg-cyan-500/10 border-cyan-400/30 text-cyan-300'
+                  : 'bg-orange-500/10 border-orange-400/30 text-orange-300'
+              }`}
+            >
+              {currentTurn === 'player1' ? '🎯 ' : '⚔️ '}
+              {currentTurn === 'player1' ? p1Name : p2Name}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Player 2 */}
+      <div
+        className={`flex min-w-0 items-center gap-1.5 sm:gap-3 px-1.5 sm:px-2 py-1.5 rounded-xl transition-all duration-300 ${
+          currentTurn === 'player2' && !winner
+            ? 'bg-orange-500/15 border border-orange-400/40 shadow-[0_0_18px_rgba(249,115,22,0.18)]'
+            : 'border border-transparent opacity-60'
+        }`}
+      >
+        <div className="text-right min-w-0">
+          <div className="text-xs sm:text-sm font-bold text-orange-400 truncate max-w-[90px] sm:max-w-[140px]">
+            {p2Name}
+          </div>
+          <div className="text-[9px] sm:text-[10px] text-white/40 uppercase tracking-wider">
+            Red Pen
+          </div>
+        </div>
+
+        <div className="relative shrink-0">
+          <img
+            src={p2Avatar || 'https://api.dicebear.com/7.x/bottts/svg?seed=P2'}
+            alt={p2Name}
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-orange-500/20 border border-orange-400/40"
+          />
+
+          {currentTurn === 'player2' && !winner && (
+            <span className="absolute -left-0.5 -bottom-0.5 w-3 h-3 rounded-full bg-orange-400 border-2 border-dark-900 animate-pulse" />
+          )}
+        </div>
+      </div>
+    </div>
+
+    {/* Turn Progress */}
+    {!winner && (
+      <div className="mt-2.5 h-0.5 w-full rounded-full bg-white/5 overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${
+            currentTurn === 'player1'
+              ? 'w-1/2 bg-cyan-400'
+              : 'w-full bg-orange-400'
+          }`}
+        />
+      </div>
+    )}
+
+  </div>
+</div>
+
       {/* ─── Canvas Arena ──────────────────────────────────────────────────── */}
-      <div className="relative w-full max-w-4xl aspect-[760/500] rounded-2xl overflow-hidden shadow-2xl border border-white/15 bg-dark-900">
+      <div className="relative w-full max-w-4xl aspect-[760/500] rounded-2xl overflow-hidden shadow-2xl border border-white/15 bg-dark-900 sm:rounded-2xl">
         <canvas
           ref={canvasRef}
           width={arena.width}
@@ -450,52 +502,141 @@ if (onTurnEnd) {
           onPointerUp={handlePointerUp}
           className="w-full h-full cursor-crosshair touch-none"
         />
+      </div>
+{/* Winner Overlay Modal */}
+{winner && (
+  <div className="absolute inset-0 bg-dark-900/85 backdrop-blur-lg flex flex-col items-center justify-center p-5 sm:p-6 z-30 animate-fade-in">
+    {/* Result Card */}
+    <div
+      className={`relative w-full max-w-md rounded-3xl border p-6 sm:p-8 text-center shadow-2xl ${
+        winner === 'player1'
+          ? 'border-yellow-400/20 bg-yellow-400/[0.03]'
+          : 'border-red-400/20 bg-red-400/[0.03]'
+      }`}
+    >
+      {/* Decorative Glow */}
+      <div
+        className={`absolute -top-20 left-1/2 -translate-x-1/2 w-40 h-40 rounded-full blur-3xl opacity-20 pointer-events-none ${
+          winner === 'player1' ? 'bg-yellow-400' : 'bg-red-500'
+        }`}
+      />
 
-        {/* Winner Overlay Modal */}
-        {winner && (
-          <div className="absolute inset-0 bg-dark-900/80 backdrop-blur-md flex flex-col items-center justify-center p-6 z-30 animate-fade-in">
-            <div className="text-6xl mb-3 animate-bounce">
-  {winner === 'player1' ? '🏆' : '💀'}
-</div>
-
-<h2 className={`font-game font-black text-3xl sm:text-4xl mb-1 ${
-  winner === 'player1' ? 'text-yellow-400' : 'text-red-400'
-}`}>
-  {winner === 'player1' ? 'VICTORY!' : 'DEFEAT!'}
-</h2>
-
-<p className="text-white/70 text-sm mb-6">
-  {winner === 'player1' ? (
-    <>
-      <strong className="text-white">{p1Name}</strong> knocked the opponent out of the arena!
-    </>
-  ) : (
-    <>
-      <strong className="text-white">{p2Name}</strong> knocked you out of the arena!
-    </>
-  )}
-</p>
-            <div className="flex gap-4">
-              <button
-                onClick={() => {
-                  resetBoard();
-                  if (onRematch) onRematch();
-                }}
-                className="btn-neon px-8 py-3 text-sm font-game"
-              >
-                🔄 Play Again
-              </button>
-            </div>
-          </div>
-        )}
+      {/* Trophy / Defeat Icon */}
+      <div
+        className={`relative text-5xl sm:text-6xl mb-4 ${
+          winner === 'player1' ? 'animate-bounce' : 'animate-pulse'
+        }`}
+      >
+        {winner === 'player1' ? '🏆' : '💀'}
       </div>
 
+      {/* Result Label */}
+      <div
+        className={`text-[10px] sm:text-xs font-mono uppercase tracking-[0.3em] mb-2 ${
+          winner === 'player1' ? 'text-yellow-400/60' : 'text-red-400/60'
+        }`}
+      >
+        Match Complete
+      </div>
+
+      {/* Result */}
+      <h2
+        className={`font-game font-black text-4xl sm:text-5xl tracking-wide mb-3 ${
+          winner === 'player1' ? 'text-yellow-400' : 'text-red-400'
+        }`}
+      >
+        {winner === 'player1' ? 'VICTORY!' : 'DEFEAT!'}
+      </h2>
+
+      {/* Description */}
+      <p className="text-white/60 text-xs sm:text-sm leading-relaxed mb-6 max-w-sm mx-auto">
+        {winner === 'player1' ? (
+          <>
+            <strong className="text-white">{p1Name}</strong>{' '}
+            knocked the opponent out of the arena!
+          </>
+        ) : (
+          <>
+            <strong className="text-white">{p2Name}</strong>{' '}
+            knocked you out of the arena!
+          </>
+        )}
+      </p>
+
+      {/* Winner Badge */}
+      <div
+        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-6 ${
+          winner === 'player1'
+            ? 'bg-yellow-400/10 border-yellow-400/20 text-yellow-300'
+            : 'bg-red-400/10 border-red-400/20 text-red-300'
+        }`}
+      >
+        <span className="w-2 h-2 rounded-full bg-current animate-pulse" />
+        <span className="text-[10px] font-mono uppercase tracking-widest">
+          {winner === 'player1' ? 'Arena Champion' : 'Better luck next round'}
+        </span>
+      </div>
+
+      {/* Actions */}
+      <div className="flex justify-center">
+        <button
+          onClick={() => {
+            resetBoard();
+            if (onRematch) onRematch();
+          }}
+          className="btn-neon w-full sm:w-auto min-w-[190px] px-8 py-3.5 text-sm font-game font-bold hover:scale-[1.02] active:scale-[0.98] transition-transform"
+        >
+          🔄 PLAY AGAIN
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+```
+
       {/* ─── Bottom Game Controls ──────────────────────────────────────────── */}
-      {!winner && isInteractive && (
-        <div className="w-full max-w-4xl mt-3 p-4 rounded-xl glass-card border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-          {/* Aim Angle Controller */}
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <span className="text-xs text-white/50 font-mono">ANGLE:</span>
+{!winner && isInteractive && (
+  <div className="w-full max-w-4xl mt-3 space-y-2.5">
+
+    {/* Turn Status */}
+    <div
+      className={`flex items-center justify-center gap-2 px-4 py-2 rounded-xl border text-[10px] sm:text-xs font-mono uppercase tracking-widest transition-all ${
+        currentTurn === mySide
+          ? 'bg-cyan-500/10 border-cyan-400/25 text-cyan-300'
+          : 'bg-orange-500/10 border-orange-400/25 text-orange-300'
+      }`}
+    >
+      <span
+        className={`w-2 h-2 rounded-full animate-pulse ${
+          currentTurn === mySide ? 'bg-cyan-400' : 'bg-orange-400'
+        }`}
+      />
+
+      {currentTurn === mySide
+        ? '🎯 Your turn — aim and fire'
+        : '⏳ Opponent turn — waiting'}
+    </div>
+
+    {/* Controls */}
+    <div className="glass-card border-white/10 rounded-2xl p-2.5 sm:p-4">
+
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5 sm:gap-3 lg:gap-5">
+
+        {/* Angle */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[9px] sm:text-[10px] text-white/40 font-mono uppercase tracking-widest">
+              Angle
+            </span>
+
+            <span className="text-xs font-game font-bold text-cyan-400">
+              {Math.round((aimAngle * 180) / Math.PI)}°
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-white/30">←</span>
+
             <input
               type="range"
               min={-Math.PI}
@@ -503,45 +644,70 @@ if (onTurnEnd) {
               step={0.05}
               value={aimAngle}
               onChange={(e) => setAimAngle(parseFloat(e.target.value))}
-              disabled={isSimulating}
-              className="w-32 accent-cyan-400 cursor-pointer"
+              disabled={isSimulating || currentTurn !== mySide}
+              className="w-full h-5 accent-cyan-400 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
             />
-            <span className="text-xs font-mono text-cyan-400 w-12">
-              {Math.round((aimAngle * 180) / Math.PI)}°
+
+            <span className="text-[10px] text-white/30">→</span>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="hidden lg:block w-px h-10 bg-white/10" />
+
+        {/* Power */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[9px] sm:text-[10px] text-white/40 font-mono uppercase tracking-widest">
+              Power
+            </span>
+
+            <span className="text-xs font-game font-bold text-orange-400">
+              {aimPower}%
             </span>
           </div>
 
-          {/* Power Controller Slider */}
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <span className="text-xs text-white/50 font-mono">POWER:</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-white/30">10</span>
+
             <input
               type="range"
               min={10}
               max={100}
               value={aimPower}
               onChange={(e) => setAimPower(parseInt(e.target.value, 10))}
-              disabled={isSimulating}
-              className="w-32 accent-orange-400 cursor-pointer"
+              disabled={isSimulating || currentTurn !== mySide}
+              className="w-full h-5 accent-orange-400 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
             />
-            <span className="text-xs font-mono text-orange-400 w-10 font-bold">
-              {aimPower}%
-            </span>
-          </div>
 
-          {/* Shoot Button */}
-          <button
-            onClick={() => executeShot(aimAngle, aimPower, currentTurn)}
-            disabled={isSimulating}
-            className="btn-neon px-8 py-2.5 text-xs font-game tracking-wider uppercase w-full sm:w-auto flex items-center justify-center gap-2"
-          >
-            {isSimulating ? '🚀 Rolling...' : '🎯 SHOOT!'}
-          </button>
+            <span className="text-[10px] text-white/30">100</span>
+          </div>
         </div>
-      )}
+
+        {/* Shoot */}
+        <button
+          onClick={() => executeShot(aimAngle, aimPower, currentTurn)}
+          disabled={isSimulating || currentTurn !== mySide}
+          className={`lg:w-40 px-6 py-3 rounded-xl text-xs font-game tracking-wider uppercase flex items-center justify-center gap-2 transition-all ${
+            currentTurn === mySide && !isSimulating
+              ? 'btn-neon hover:scale-[1.02]'
+              : 'bg-white/5 border border-white/10 text-white/30 cursor-not-allowed'
+          }`}
+        >
+          {isSimulating
+            ? '🚀 Rolling...'
+            : currentTurn === mySide
+              ? '🎯 SHOOT!'
+              : '⏳ WAIT'}
+        </button>
+
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }
-
 // ─── Canvas Drawing Helper Functions ──────────────────────────────────────────
 
 function drawDeskArena(ctx: CanvasRenderingContext2D, arena: ArenaDimensions) {

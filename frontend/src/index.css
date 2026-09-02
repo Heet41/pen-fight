@@ -185,3 +185,107 @@ canvas {
     letter-spacing: -0.02em;
   }
 }
+
+/* ─── Custom Neon Cursor ────────────────────────────────────────────────────── */
+
+@media (pointer: fine) {
+  body,
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    cursor: none;
+  }
+
+  .custom-cursor-dot,
+  .custom-cursor-ring {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 99999;
+    transform: translate(-50%, -50%);
+    will-change: transform;
+  }
+
+  .custom-cursor-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: var(--neon-blue);
+    box-shadow:
+      0 0 8px rgba(0, 212, 255, 0.9),
+      0 0 18px rgba(0, 212, 255, 0.6);
+  }
+
+  .custom-cursor-ring {
+    width: 32px;
+    height: 32px;
+    border: 1px solid rgba(0, 212, 255, 0.45);
+    border-radius: 9999px;
+    background: rgba(0, 212, 255, 0.03);
+    box-shadow:
+      0 0 12px rgba(0, 212, 255, 0.12),
+      inset 0 0 10px rgba(0, 212, 255, 0.05);
+    transition:
+      width 180ms ease,
+      height 180ms ease,
+      border-color 180ms ease,
+      background 180ms ease,
+      box-shadow 180ms ease;
+  }
+
+  .custom-cursor-ring.cursor-hover {
+    width: 46px;
+    height: 46px;
+    border-color: rgba(168, 85, 247, 0.7);
+    background: rgba(168, 85, 247, 0.06);
+    box-shadow:
+      0 0 20px rgba(168, 85, 247, 0.25),
+      inset 0 0 12px rgba(168, 85, 247, 0.08);
+  }
+
+  .custom-cursor-ring.cursor-click {
+    width: 54px;
+    height: 54px;
+    border-color: rgba(0, 212, 255, 0.9);
+    background: rgba(0, 212, 255, 0.08);
+  }
+
+  .cursor-ripple {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    border: 1px solid rgba(0, 212, 255, 0.8);
+    border-radius: 9999px;
+    pointer-events: none;
+    z-index: 99998;
+    transform: translate(-50%, -50%);
+    animation: cursor-ripple 500ms ease-out forwards;
+  }
+
+  @keyframes cursor-ripple {
+    0% {
+      opacity: 0.8;
+      width: 10px;
+      height: 10px;
+    }
+
+    100% {
+      opacity: 0;
+      width: 70px;
+      height: 70px;
+      border-color: rgba(168, 85, 247, 0);
+    }
+  }
+}
+
+/* Never hide the native cursor on touch devices */
+@media (pointer: coarse) {
+  .custom-cursor-dot,
+  .custom-cursor-ring,
+  .cursor-ripple {
+    display: none;
+  }
+}
