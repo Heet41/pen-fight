@@ -1,339 +1,545 @@
-# ✒️ Pen Fight
+# Pen Fight
 
-A **production-ready, browser-based multiplayer pen fighting game** — the classic desk game, reimagined for the web.
+A browser-based physics game inspired by the classic desk game where players use pens to knock their opponent out of the arena.
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue)](https://typescriptlang.org)
-[![React](https://img.shields.io/badge/React-18-61dafb)](https://reactjs.org)
-[![Node.js](https://img.shields.io/badge/Node.js-20+-green)](https://nodejs.org)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791)](https://postgresql.org)
-
----
-
-## 🎮 Game Concept
-
-Two players control virtual pens on a game board and try to knock the opponent's pen outside the playable area. Players alternate turns, aiming and shooting with adjustable power. Physics handles friction, collisions, and boundaries. Last pen inside the arena wins.
+**Live Demo:** https://pen-fight-neon.vercel.app/  
+**Backend API:** https://pen-fight-backend.onrender.com  
+**Repository:** https://github.com/Heet41/pen-fight
 
 ---
 
-## ✨ Features
+## Overview
+
+Pen Fight recreates the simple idea of a physical pen battle as an interactive web game.
+
+Players aim and launch a virtual pen across the arena, using physics-based movement, collisions, friction, and boundaries to knock the opposing pen out of play.
+
+The project combines a React frontend, a Node.js backend, PostgreSQL persistence, authentication, game-state management, and real-time infrastructure into a full-stack application.
+
+---
+
+## Features
 
 ### Gameplay
-- **Local 2-Player** — Pass & play on the same device with round score tracking
-- **VS AI Bot** — Three difficulty levels: Easy, Medium, and Hard with strategic physics simulation
-- **HTML5 Canvas Engine** — Deterministic physics, capsule pen collision, momentum conservation, trajectory preview
-- **Web Audio FX** — Synthesized launch swoosh, pen collision clacks, and victory fanfares
 
-### Progression & Customization
-- **XP & Levels** — Earn XP from AI and Local battles, level up dynamically
-- **Global Leaderboard** — Ranked by MMR, Win Rate %, and Win Streaks
-- **Locker & Cosmetics** — Unlock and equip pen skins, glow effects, and titles
-- **Achievements** — 15 unlockable milestone achievements
-- **Player Profiles** — Detailed match history, stats, and win rates
+- **Local 2-Player Battle**
+  - Pass-and-play multiplayer on the same device
+  - Separate controls for Player 1 and Player 2
+  - Turn-based gameplay
+  - Physics-based shooting and collisions
+  - Round and victory handling
 
-### Technical
-- **Type-safe Monorepo** — 100% TypeScript across frontend, backend, and shared packages
-- **Secure Auth** — JWT with HTTP-only cookies, bcrypt hashing, and instant Guest mode
-- **Automated Tests** — Complete unit test suites for Physics, AI, and Ranking algorithms
+- **AI Arena**
+  - Play against AI opponents
+  - Easy, Medium, and Hard difficulty levels
+  - AI-controlled turns
+  - Physics-aware shot decisions
+
+- **Physics-Based Game Engine**
+  - Pen movement and momentum
+  - Friction
+  - Collision detection
+  - Arena boundaries
+  - Trajectory preview
+  - Knockout detection
+
+- **Game Feedback**
+  - Victory and defeat states
+  - Visual effects
+  - Particle effects
+  - Synthesized game audio
+  - Responsive game controls
+
+### Accounts & Authentication
+
+- User registration
+- Login with username or email
+- JWT-based authentication
+- Password hashing with bcrypt
+- Guest mode
+- Demo accounts
+- Logout functionality
+- Persistent authenticated sessions
+
+### Player Features
+
+- Player profiles
+- Match statistics
+- Win/loss tracking
+- Win rate
+- Match history
+- Achievements
+- Leaderboard
+- Cosmetic items
+
+### User Interface
+
+- Dark neon arcade-inspired design
+- Animated interface
+- Responsive desktop and mobile layouts
+- Custom cursor
+- Atmospheric particle effects
+- Animated transitions
+- Dedicated game, profile, settings, and lobby screens
 
 ---
 
-## 🛠️ Tech Stack
+## Screenshots
+
+Screenshots of the finished application can be added here.
+
+```text
+docs/screenshots/
+├── landing.png
+├── login.png
+├── menu.png
+├── local-battle.png
+├── ai-battle.png
+├── victory.png
+├── profile.png
+└── settings.png
+```
+
+---
+
+## Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
-| Frontend | React 18, TypeScript, Vite, Tailwind CSS, Framer Motion |
-| Game Rendering | HTML5 Canvas |
+|---|---|
+| Frontend | React 18 |
+| Language | TypeScript |
+| Build Tool | Vite |
+| Styling | Tailwind CSS |
+| Animation | Framer Motion |
 | State Management | Zustand |
-| Backend | Node.js, Express, TypeScript |
+| Rendering | HTML5 Canvas |
+| Backend | Node.js |
+| API | Express |
 | Real-time | Socket.IO |
-| Database | PostgreSQL 15+ |
+| Database | PostgreSQL |
 | ORM | Prisma |
-| Authentication | JWT, bcryptjs, HTTP-only cookies |
+| Authentication | JWT + bcrypt |
 | Validation | Zod |
-| Security | Helmet, CORS, express-rate-limit |
+| Security | Helmet, CORS, Rate Limiting |
+| Frontend Hosting | Vercel |
+| Backend Hosting | Render |
+| Database Hosting | Neon PostgreSQL |
 
 ---
 
-## 📁 Project Structure
+## Architecture
 
+Pen Fight is organized as a TypeScript monorepo with separate frontend, backend, shared, and database layers.
+
+```text
+                         ┌─────────────────────┐
+                         │      Browser        │
+                         │   React + Canvas    │
+                         └──────────┬──────────┘
+                                    │
+                         HTTP / Socket.IO
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │       Backend       │
+                         │ Node.js + Express   │
+                         │      Socket.IO      │
+                         └──────────┬──────────┘
+                                    │
+                              Prisma ORM
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │      PostgreSQL     │
+                         │    Neon Database    │
+                         └─────────────────────┘
+
+                         ┌─────────────────────┐
+                         │       Shared        │
+                         │ Types + Game Config │
+                         └─────────────────────┘
 ```
+
+---
+
+## Project Structure
+
+```text
 pen-fight/
-├── frontend/          # React + Vite frontend
+│
+├── frontend/
 │   ├── src/
-│   │   ├── components/    # Reusable UI components
-│   │   ├── pages/         # Page-level components
-│   │   ├── hooks/         # Custom React hooks
-│   │   ├── store/         # Zustand state stores
-│   │   ├── utils/         # Utility functions
-│   │   └── types/         # TypeScript types
+│   │   ├── components/      # Reusable UI and game components
+│   │   ├── pages/           # Application pages
+│   │   ├── hooks/           # Custom React hooks
+│   │   ├── store/           # Zustand state management
+│   │   ├── utils/            # Frontend utilities
+│   │   └── types/            # Frontend types
 │   └── ...
-├── backend/           # Express API + Socket.IO
+│
+├── backend/
+│   ├── src/
+│   │   ├── config/           # Environment and database configuration
+│   │   ├── controllers/      # API request handlers
+│   │   ├── middleware/       # Authentication, errors, rate limiting
+│   │   ├── routes/           # API routes
+│   │   ├── services/         # Business logic
+│   │   ├── repositories/     # Database access
+│   │   ├── websocket/        # Socket.IO functionality
+│   │   └── utils/            # Backend utilities
+│   └── ...
+│
+├── shared/
 │   └── src/
-│       ├── config/        # Environment configuration
-│       ├── controllers/   # Request handlers
-│       ├── middleware/    # Auth, rate limiting, error handling
-│       ├── routes/        # API route definitions
-│       ├── services/      # Business logic
-│       ├── repositories/  # Database access layer
-│       ├── websocket/     # Socket.IO event handlers
-│       └── utils/         # Shared utilities
-├── shared/            # Shared types, constants, game config
-│   └── src/
-│       └── index.ts       # Types, constants, game config
-├── prisma/            # Database schema and migrations
-│   ├── schema.prisma
-│   └── seed.ts
-└── docs/              # Documentation
+│       └── index.ts          # Shared types and game configuration
+│
+├── prisma/
+│   ├── schema.prisma         # Database schema
+│   └── seed.ts               # Development/demo data
+│
+├── docs/                     # Project documentation
+├── package.json
+└── README.md
 ```
 
 ---
 
-## 🚀 Quick Start
+## Running Locally
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 20+
-- [PostgreSQL](https://postgresql.org/) 15+
-- npm 10+
+Make sure you have:
 
-### 1. Clone and Install
+- Node.js 20+
+- npm 10+
+- PostgreSQL 15+ or a PostgreSQL-compatible database
+
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/pen-fight.git
+git clone https://github.com/Heet41/pen-fight.git
 cd pen-fight
+```
+
+### 2. Install dependencies
+
+```bash
 npm install
 ```
 
-### 2. Configure Environment
+### 3. Configure environment variables
 
-```bash
-cp .env.example .env
-# Edit .env and set your DATABASE_URL and secrets
+Create a `.env` file based on the project's environment configuration.
+
+At minimum, configure your PostgreSQL connection and application secrets.
+
+Example:
+
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/penfight?schema=public"
+JWT_SECRET="your-development-jwt-secret"
+COOKIE_SECRET="your-development-cookie-secret"
+CORS_ORIGIN="http://localhost:5173"
+FRONTEND_URL="http://localhost:5173"
 ```
 
-### 3. Database Setup
+Do not commit real production secrets to Git.
+
+### 4. Generate Prisma Client
 
 ```bash
-# Create the database
-createdb penfight
+npx prisma generate --schema=prisma/schema.prisma
+```
 
-# Run migrations
+### 5. Run database migrations
+
+For a development database:
+
+```bash
 npx prisma migrate dev --schema=prisma/schema.prisma
-
-# Seed development data
-npx ts-node prisma/seed.ts
 ```
 
-### 4. Start Development
+### 6. Seed the database
 
 ```bash
-# Start both frontend and backend concurrently
+npx prisma db seed
+```
+
+The seed creates demo users, achievements, cosmetic items, seasons, and sample data.
+
+### 7. Start the application
+
+```bash
 npm run dev
 ```
 
-- **Frontend**: http://localhost:5173
-- **Backend**: http://localhost:3001
-- **Health check**: http://localhost:3001/api/health
+The development application runs at:
+
+```text
+Frontend: http://localhost:5173
+Backend:  http://localhost:3001
+Health:   http://localhost:3001/api/health
+```
 
 ---
 
-## 🔑 Environment Variables
+## Demo Accounts
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `DATABASE_URL` | ✅ | — | PostgreSQL connection string |
-| `PORT` | ❌ | `3001` | Backend server port |
-| `NODE_ENV` | ❌ | `development` | Environment |
-| `JWT_SECRET` | ✅ | — | JWT signing secret (change in production!) |
-| `JWT_EXPIRES_IN` | ❌ | `7d` | JWT token lifetime |
-| `COOKIE_SECRET` | ✅ | — | Cookie signing secret |
-| `CORS_ORIGIN` | ❌ | `http://localhost:5173` | Allowed CORS origin |
-| `FRONTEND_URL` | ❌ | `http://localhost:5173` | Frontend URL for links |
-| `RATE_LIMIT_WINDOW_MS` | ❌ | `900000` | Rate limit window (15min) |
-| `RATE_LIMIT_MAX_REQUESTS` | ❌ | `100` | Max requests per window |
-| `AUTH_RATE_LIMIT_MAX` | ❌ | `10` | Max auth attempts per window |
+The seeded database includes demo accounts for testing.
+
+| Username | Email | Password |
+|---|---|---|
+| admin | admin@penfight.gg | Admin@12345 |
+| alice | alice@penfight.gg | Alice@12345 |
+| bob | bob@penfight.gg | Bob@12345 |
+| charlie | charlie@penfight.gg | Charlie@12345 |
+| diana | diana@penfight.gg | Diana@12345 |
+| eve | eve@penfight.gg | Eve@12345 |
+
+These accounts are intended for demonstration and development purposes.
 
 ---
 
-## 🗄️ Database
+## Database
 
-### Schema Overview
+Pen Fight uses PostgreSQL with Prisma ORM.
 
-| Table | Purpose |
-|-------|---------|
-| `users` | Player accounts |
-| `player_stats` | Win/loss stats, rating |
-| `rooms` | Online game rooms |
-| `matches` | Match records |
-| `match_players` | Player-match mapping |
-| `match_events` | Shot/collision event log |
+The database contains data for areas including:
 
-### Commands
+- User accounts
+- Player statistics
+- Matches
+- Match players
+- Match events
+- Game rooms
+- Achievements
+- Cosmetic items
+- Seasons
+- Player progression
+
+Useful Prisma commands:
 
 ```bash
-# Run migrations
+# Generate Prisma Client
+npx prisma generate --schema=prisma/schema.prisma
+
+# Create and apply development migrations
 npx prisma migrate dev --schema=prisma/schema.prisma
 
-# Reset database (⚠️ destroys all data)
-npx prisma migrate reset --schema=prisma/schema.prisma
+# Apply production migrations
+npx prisma migrate deploy --schema=prisma/schema.prisma
 
-# Open database studio
+# Seed database
+npx prisma db seed
+
+# Open Prisma Studio
 npx prisma studio --schema=prisma/schema.prisma
-
-# Seed with test data
-npx ts-node prisma/seed.ts
 ```
 
 ---
 
-## 🌐 API Overview
+## Authentication
 
-### Authentication
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/auth/register` | Create account |
-| POST | `/api/auth/login` | Login |
-| POST | `/api/auth/logout` | Logout |
-| GET | `/api/auth/me` | Current user |
+The authentication system supports:
 
-### Users
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/users/:id` | Get user profile |
-| PATCH | `/api/users/:id` | Update profile |
-| GET | `/api/users/:id/stats` | Player stats |
+- Account registration
+- Username/email login
+- Password hashing with bcrypt
+- JWT authentication
+- Authenticated API requests
+- Guest sessions
+- Logout
+- Current-user session restoration
 
-### Rooms
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/rooms` | Create room |
-| POST | `/api/rooms/join` | Join with code |
-| GET | `/api/rooms/:code` | Get room info |
-| DELETE | `/api/rooms/:id` | Delete room |
-
-### Matches
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/matches` | Create match |
-| GET | `/api/matches/:id` | Get match |
-| GET | `/api/matches/history` | Match history |
-
-### Other
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/leaderboard` | Leaderboard |
-| GET | `/api/health` | Health check |
+Authentication requests are handled by the backend API and protected using middleware where required.
 
 ---
 
-## ⚡ WebSocket Events
+## API
 
-### Client → Server
-| Event | Description |
-|-------|-------------|
-| `room:create` | Create a new room |
-| `room:join` | Join a room by code |
-| `room:leave` | Leave current room |
-| `room:ready` | Toggle ready state |
-| `game:shot` | Submit a shot (angle + power) |
-| `reaction:send` | Send an emoji reaction |
-| `quickchat:send` | Send a quick chat message |
-| `rematch:request` | Request a rematch |
-| `rematch:accept` | Accept rematch |
-| `matchmaking:join` | Join ranked queue |
-| `matchmaking:cancel` | Leave ranked queue |
+The backend exposes a REST API under:
 
-### Server → Client
-| Event | Description |
-|-------|-------------|
-| `game:start` | Match starting |
-| `game:state` | Full game state update |
-| `game:turn` | Turn changed |
-| `game:physics` | Physics simulation result |
-| `game:ended` | Match over, with winner |
-| `player:disconnect` | Opponent disconnected |
-| `player:reconnect` | Opponent reconnected |
-| `matchmaking:found` | Match found |
-| `reaction:receive` | Receive reaction |
-| `rank:updated` | Rating/rank changed |
-| `level:up` | Level up notification |
-| `achievement:unlocked` | Achievement earned |
+```text
+/api
+```
+
+The application also exposes a health endpoint:
+
+```text
+GET /api/health
+```
+
+Production health check:
+
+https://pen-fight-backend.onrender.com/api/health
+
+The backend also includes Socket.IO infrastructure for real-time game communication.
 
 ---
 
-## 🧪 Testing
+## Deployment
+
+Pen Fight is deployed as separate frontend, backend, and database services.
+
+### Frontend
+
+Hosted on **Vercel**.
+
+```text
+https://pen-fight-neon.vercel.app/
+```
+
+The frontend is built using:
 
 ```bash
-# Run backend tests
-cd backend && npm test
-
-# Run frontend tests
-cd frontend && npm test
-
-# Run all tests
-npm test
+npm run build --workspace=frontend
 ```
 
----
+### Backend
 
-## 🐳 Docker
+Hosted on **Render**.
+
+```text
+https://pen-fight-backend.onrender.com
+```
+
+The backend build process includes:
 
 ```bash
-# Start all services (PostgreSQL + Backend + Frontend)
-docker compose up
-
-# Background mode
-docker compose up -d
-
-# Stop
-docker compose down
+npm install
+npx prisma generate --schema=prisma/schema.prisma
+npx prisma migrate deploy --schema=prisma/schema.prisma
+npm run build --workspace=backend
 ```
 
----
+### Database
 
-## 🚢 Deployment
+Hosted using **Neon PostgreSQL**.
 
-### Frontend (Vercel)
+Production migrations are applied using:
+
 ```bash
-cd frontend
-vercel deploy
+npx prisma migrate deploy --schema=prisma/schema.prisma
 ```
 
-### Backend (Railway/Render)
-1. Connect GitHub repo
-2. Set environment variables
-3. Deploy `backend/` directory
-4. Make sure the platform supports WebSockets
+---
 
-### Database (Supabase / Neon / Railway PostgreSQL)
-1. Create a PostgreSQL instance
-2. Copy the connection string to `DATABASE_URL`
-3. Run `prisma migrate deploy`
+## Security
+
+The backend includes several security measures:
+
+- Password hashing using bcrypt
+- JWT authentication
+- HTTP authentication mechanisms
+- Helmet security headers
+- CORS configuration
+- API rate limiting
+- Authentication rate limiting
+- Request validation
+- Centralized error handling
+
+Production secrets and database credentials are stored as environment variables rather than committed to the repository.
 
 ---
 
-## 🗺️ Build Phases
+## Development Principles
 
-| Phase | Status | Description |
-|-------|--------|-------------|
-| 1 | ✅ | Project foundation |
-| 2 | 🔲 | Database schema |
-| 3 | 🔲 | Authentication |
-| 4 | 🔲 | Core game engine |
-| 5 | 🔲 | Local multiplayer |
-| 6 | 🔲 | AI |
-| 7 | 🔲 | Online rooms |
-| 8 | 🔲 | Custom rooms |
-| 9 | 🔲 | Social features |
-| 10 | 🔲 | XP & levels |
-| 11 | 🔲 | Ranked mode |
-| 12 | 🔲 | Matchmaking |
-| 13 | 🔲 | Seasons & achievements |
-| 14 | 🔲 | Polish |
-| 15 | 🔲 | Testing |
+The project was developed around a few practical principles:
+
+- Build the MVP before adding complexity
+- Keep frontend, backend, database, and shared logic separated
+- Test major features before moving forward
+- Make one change at a time when debugging
+- Avoid unnecessary rewrites of working systems
+- Prioritize usability and responsive design
+- Deploy before considering the project finished
+- Fix real bugs before adding new features
 
 ---
 
-## 📝 License
+## Current Status
 
-MIT — see [LICENSE](LICENSE) for details.
+Pen Fight is currently deployed and playable.
+
+### Completed
+
+- [x] Project foundation
+- [x] React frontend
+- [x] Express backend
+- [x] PostgreSQL database
+- [x] Prisma integration
+- [x] Authentication
+- [x] Guest mode
+- [x] Demo accounts
+- [x] Local 2-player gameplay
+- [x] AI gameplay
+- [x] Turn-based game flow
+- [x] Physics-based gameplay
+- [x] Victory and defeat states
+- [x] Player profiles
+- [x] Match statistics
+- [x] Achievements
+- [x] Leaderboard
+- [x] Cosmetic system
+- [x] Responsive UI
+- [x] Production deployment
+- [x] Production database
+- [x] Production health monitoring
+
+---
+
+## Future Improvements
+
+Possible future improvements include:
+
+- Online matchmaking
+- Private online rooms
+- Expanded multiplayer functionality
+- Additional arenas and game modes
+- More cosmetic content
+- Additional gameplay effects
+- Improved competitive systems
+- More automated integration and end-to-end testing
+
+These are future possibilities rather than requirements for the current release.
+
+---
+
+## What I Learned
+
+Building Pen Fight involved working across the full application stack, including:
+
+- React application architecture
+- TypeScript
+- Canvas-based game development
+- Physics and collision systems
+- State management with Zustand
+- REST API design
+- Authentication and authorization
+- PostgreSQL database design
+- Prisma ORM
+- WebSocket infrastructure
+- Responsive UI development
+- Production deployment
+- Environment configuration
+- Debugging cross-origin and deployment issues
+
+The project was particularly useful for understanding how frontend gameplay, backend services, authentication, and persistent data work together in a real full-stack application.
+
+---
+
+## License
+
+This project was created as a personal portfolio project.
+
+---
+
+## Author
+
+**Heet Khunt**
+
+GitHub: https://github.com/Heet41
+
+Project: https://github.com/Heet41/pen-fight
+
+Live Demo: https://pen-fight-neon.vercel.app/
