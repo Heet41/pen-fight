@@ -1,19 +1,24 @@
-import { PrismaClient, GameMode, SeasonStatus, AchievementRarity, ItemType, ItemRarity } from '@prisma/client';
+import {
+  PrismaClient,
+  GameMode,
+  SeasonStatus,
+  AchievementRarity,
+  ItemType,
+  ItemRarity,
+} from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+
+declare const console: {
+  log(...data: unknown[]): void;
+  error(...data: unknown[]): void;
+};
 
 const prisma = new PrismaClient();
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
 async function hashPassword(plain: string): Promise<string> {
   return bcrypt.hash(plain, 12);
-}
-
-function addHours(date: Date, hours: number): Date {
-  return new Date(date.getTime() + hours * 60 * 60 * 1000);
-}
-
-function addDays(date: Date, days: number): Date {
-  return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
 }
 
 // ─── Seed Data ────────────────────────────────────────────────────────────────
@@ -117,7 +122,7 @@ async function seedAchievements() {
       description: 'Reach Gold rank.',
       icon: '✨',
       requirementType: 'reach_rank',
-      requirementValue: 1400, // Gold min rating
+      requirementValue: 1400,
       rarity: AchievementRarity.RARE,
       xpReward: 500,
     },
@@ -162,19 +167,26 @@ async function seedAchievements() {
   for (const ach of achievements) {
     await prisma.achievement.upsert({
       where: { name: ach.name },
-      update: {},
+      update: {
+        description: ach.description,
+        icon: ach.icon,
+        requirementType: ach.requirementType,
+        requirementValue: ach.requirementValue,
+        rarity: ach.rarity,
+        xpReward: ach.xpReward,
+      },
       create: ach,
     });
   }
 
-  console.log(`  ✓ ${achievements.length} achievements created`);
+  console.log(`  ✓ ${achievements.length} achievements created/updated`);
 }
 
 async function seedItems() {
   console.log('🎨 Seeding cosmetic items...');
 
   const items = [
-    // Default pen skin (everyone has this)
+    // Default pen skin
     {
       name: 'Classic Blue Pen',
       description: 'The classic pen. Simple and reliable.',
@@ -193,6 +205,7 @@ async function seedItems() {
       isDefault: true,
       data: { color: '#ef4444', strokeColor: '#cc0000' },
     },
+
     // Unlockable pen skins
     {
       name: 'Neon Purple Pen',
@@ -219,8 +232,14 @@ async function seedItems() {
       rarity: ItemRarity.EPIC,
       icon: '💎',
       isDefault: false,
-      data: { color: '#b9f2ff', strokeColor: '#7ecfff', glow: true, sparkle: true },
+      data: {
+        color: '#b9f2ff',
+        strokeColor: '#7ecfff',
+        glow: true,
+        sparkle: true,
+      },
     },
+
     // Trail effects
     {
       name: 'Fire Trail',
@@ -240,6 +259,7 @@ async function seedItems() {
       isDefault: false,
       data: { particles: 'stars', color: '#ffd700' },
     },
+
     // Titles
     {
       name: 'Newbie',
@@ -273,23 +293,32 @@ async function seedItems() {
   for (const item of items) {
     await prisma.item.upsert({
       where: { name: item.name },
-      update: {},
+      update: {
+        description: item.description,
+        type: item.type,
+        rarity: item.rarity,
+        icon: item.icon,
+        isDefault: item.isDefault,
+        data: item.data,
+      },
       create: item,
     });
   }
 
-  console.log(`  ✓ ${items.length} items created`);
+  console.log(`  ✓ ${items.length} items created/updated`);
 }
 
 async function seedSeasons() {
   console.log('📅 Seeding seasons...');
 
-  const now = new Date();
-
   // Season 1 — completed
   await prisma.season.upsert({
     where: { name: 'Season 1: The Beginning' },
-    update: {},
+    update: {
+      startDate: new Date('2026-01-01'),
+      endDate: new Date('2026-03-31'),
+      status: SeasonStatus.COMPLETED,
+    },
     create: {
       name: 'Season 1: The Beginning',
       startDate: new Date('2026-01-01'),
@@ -301,7 +330,11 @@ async function seedSeasons() {
   // Season 2 — active
   await prisma.season.upsert({
     where: { name: 'Season 2: Ink Wars' },
-    update: {},
+    update: {
+      startDate: new Date('2026-04-01'),
+      endDate: new Date('2026-09-30'),
+      status: SeasonStatus.ACTIVE,
+    },
     create: {
       name: 'Season 2: Ink Wars',
       startDate: new Date('2026-04-01'),
@@ -313,7 +346,11 @@ async function seedSeasons() {
   // Season 3 — upcoming
   await prisma.season.upsert({
     where: { name: 'Season 3: Paper Storm' },
-    update: {},
+    update: {
+      startDate: new Date('2026-10-01'),
+      endDate: new Date('2026-12-31'),
+      status: SeasonStatus.UPCOMING,
+    },
     create: {
       name: 'Season 3: Paper Storm',
       startDate: new Date('2026-10-01'),
@@ -322,7 +359,7 @@ async function seedSeasons() {
     },
   });
 
-  console.log('  ✓ 3 seasons created');
+  console.log('  ✓ 3 seasons created/updated');
 }
 
 async function seedUsers() {
@@ -335,6 +372,10 @@ async function seedUsers() {
   const defaultPen = await prisma.item.findFirst({
     where: { name: 'Classic Blue Pen' },
   });
+
+  if (!defaultPen) {
+    throw new Error('Classic Blue Pen was not found after seeding items.');
+  }
 
   const testUsers = [
     {
@@ -404,7 +445,12 @@ async function seedUsers() {
 
     const user = await prisma.user.upsert({
       where: { email: u.email },
-      update: {},
+      update: {
+        username: u.username,
+        passwordHash,
+        isAdmin: u.isAdmin,
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.username}`,
+      },
       create: {
         username: u.username,
         email: u.email,
@@ -415,10 +461,21 @@ async function seedUsers() {
     });
 
     // PlayerStats
-    const winRate = u.gamesPlayed > 0 ? (u.gamesWon / u.gamesPlayed) * 100 : 0;
+    const winRate =
+      u.gamesPlayed > 0 ? (u.gamesWon / u.gamesPlayed) * 100 : 0;
+
     await prisma.playerStats.upsert({
       where: { userId: user.id },
-      update: {},
+      update: {
+        gamesPlayed: u.gamesPlayed,
+        gamesWon: u.gamesWon,
+        gamesLost: u.gamesPlayed - u.gamesWon,
+        winRate,
+        rating: u.rating,
+        totalShots: u.gamesPlayed * 8,
+        bestWinStreak: Math.floor(u.gamesWon / 5),
+        currentStreak: 0,
+      },
       create: {
         userId: user.id,
         gamesPlayed: u.gamesPlayed,
@@ -433,11 +490,17 @@ async function seedUsers() {
     });
 
     // PlayerXP
-    const totalXp = u.gamesWon * 150 + (u.gamesPlayed - u.gamesWon) * 50;
+    const totalXp =
+      u.gamesWon * 150 + (u.gamesPlayed - u.gamesWon) * 50;
+
     const level = Math.floor(Math.sqrt(totalXp / 100)) + 1;
+
     await prisma.playerXp.upsert({
       where: { userId: user.id },
-      update: {},
+      update: {
+        totalXp,
+        currentLevel: level,
+      },
       create: {
         userId: user.id,
         totalXp,
@@ -448,7 +511,10 @@ async function seedUsers() {
     // PlayerPresence
     await prisma.playerPresence.upsert({
       where: { userId: user.id },
-      update: {},
+      update: {
+        status: 'OFFLINE',
+        lastSeen: new Date(),
+      },
       create: {
         userId: user.id,
         status: 'OFFLINE',
@@ -459,9 +525,24 @@ async function seedUsers() {
     // Ranked Rating for active season
     if (activeSeason) {
       const rankName = getRankName(u.rankedRating);
+
       await prisma.rankedRating.upsert({
-        where: { userId_seasonId: { userId: user.id, seasonId: activeSeason.id } },
-        update: {},
+        where: {
+          userId_seasonId: {
+            userId: user.id,
+            seasonId: activeSeason.id,
+          },
+        },
+        update: {
+          rating: u.rankedRating,
+          rank: rankName,
+          division: 1,
+          peakRating: u.rankedRating,
+          peakRank: rankName,
+          wins: u.gamesWon,
+          losses: u.gamesPlayed - u.gamesWon,
+          isPlacement: false,
+        },
         create: {
           userId: user.id,
           seasonId: activeSeason.id,
@@ -477,52 +558,103 @@ async function seedUsers() {
       });
     }
 
-    // Give default items
-    if (defaultPen) {
-      await prisma.userInventory.upsert({
-        where: { userId_itemId: { userId: user.id, itemId: defaultPen.id } },
-        update: {},
-        create: { userId: user.id, itemId: defaultPen.id },
-      });
+    // Give default pen
+    await prisma.userInventory.upsert({
+      where: {
+        userId_itemId: {
+          userId: user.id,
+          itemId: defaultPen.id,
+        },
+      },
+      update: {},
+      create: {
+        userId: user.id,
+        itemId: defaultPen.id,
+      },
+    });
 
-      await prisma.equippedItem.upsert({
-        where: { userId_slot: { userId: user.id, slot: 'PEN_SKIN' } },
-        update: {},
-        create: { userId: user.id, slot: 'PEN_SKIN', itemId: defaultPen.id },
-      });
-    }
+    // Equip default pen only if the slot does not already exist.
+    // This prevents the seed from overriding a user's chosen pen.
+    await prisma.equippedItem.upsert({
+      where: {
+        userId_slot: {
+          userId: user.id,
+          slot: 'PEN_SKIN',
+        },
+      },
+      update: {},
+      create: {
+        userId: user.id,
+        slot: 'PEN_SKIN',
+        itemId: defaultPen.id,
+      },
+    });
 
-    console.log(`  ✓ User: ${u.username} (${u.email}) — Rating: ${u.rating}`);
+    console.log(
+      `  ✓ User: ${u.username} (${u.email}) — Rating: ${u.rating}`,
+    );
   }
 
   // Seed a friend relationship (alice ↔ bob)
-  const alice = await prisma.user.findUnique({ where: { email: 'alice@penfight.gg' } });
-  const bob = await prisma.user.findUnique({ where: { email: 'bob@penfight.gg' } });
+  const alice = await prisma.user.findUnique({
+    where: { email: 'alice@penfight.gg' },
+  });
+
+  const bob = await prisma.user.findUnique({
+    where: { email: 'bob@penfight.gg' },
+  });
+
   if (alice && bob) {
     await prisma.friend.upsert({
-      where: { senderId_receiverId: { senderId: alice.id, receiverId: bob.id } },
-      update: {},
-      create: { senderId: alice.id, receiverId: bob.id, status: 'ACCEPTED' },
+      where: {
+        senderId_receiverId: {
+          senderId: alice.id,
+          receiverId: bob.id,
+        },
+      },
+      update: {
+        status: 'ACCEPTED',
+      },
+      create: {
+        senderId: alice.id,
+        receiverId: bob.id,
+        status: 'ACCEPTED',
+      },
     });
   }
 
-  console.log(`  ✓ ${testUsers.length} users seeded`);
+  console.log(`  ✓ ${testUsers.length} users seeded/updated`);
 }
 
 async function seedSampleMatch() {
   console.log('🎮 Seeding sample completed match...');
 
-  const alice = await prisma.user.findUnique({ where: { email: 'alice@penfight.gg' } });
-  const bob = await prisma.user.findUnique({ where: { email: 'bob@penfight.gg' } });
-  const activeSeason = await prisma.season.findFirst({ where: { status: SeasonStatus.ACTIVE } });
+  const alice = await prisma.user.findUnique({
+    where: { email: 'alice@penfight.gg' },
+  });
 
-  if (!alice || !bob || !activeSeason) return;
+  const bob = await prisma.user.findUnique({
+    where: { email: 'bob@penfight.gg' },
+  });
 
-  const matchStart = new Date(Date.now() - 5 * 60 * 1000); // 5 min ago
-  const matchEnd = new Date(Date.now() - 2 * 60 * 1000);   // 2 min ago
+  const activeSeason = await prisma.season.findFirst({
+    where: { status: SeasonStatus.ACTIVE },
+  });
+
+  if (!alice || !bob || !activeSeason) {
+    console.log('  → Required users/season not found, skipping sample match');
+    return;
+  }
+
+  const matchStart = new Date(Date.now() - 5 * 60 * 1000);
+  const matchEnd = new Date(Date.now() - 2 * 60 * 1000);
 
   const existingMatch = await prisma.match.findFirst({
-    where: { player1Id: alice.id, player2Id: bob.id, status: 'COMPLETED' },
+    where: {
+      player1Id: alice.id,
+      player2Id: bob.id,
+      status: 'COMPLETED',
+    },
   });
 
   if (!existingMatch) {
@@ -546,17 +678,64 @@ async function seedSampleMatch() {
 
     await prisma.matchPlayer.createMany({
       data: [
-        { matchId: match.id, userId: alice.id, side: 'PLAYER1', result: 'WIN', shots: 5 },
-        { matchId: match.id, userId: bob.id, side: 'PLAYER2', result: 'LOSS', shots: 4 },
+        {
+          matchId: match.id,
+          userId: alice.id,
+          side: 'PLAYER1',
+          result: 'WIN',
+          shots: 5,
+        },
+        {
+          matchId: match.id,
+          userId: bob.id,
+          side: 'PLAYER2',
+          result: 'LOSS',
+          shots: 4,
+        },
       ],
     });
 
     await prisma.matchEvent.createMany({
       data: [
-        { matchId: match.id, playerId: alice.id, eventType: 'SHOT', eventData: { angle: 1.2, power: 80, turn: 1 } },
-        { matchId: match.id, playerId: bob.id, eventType: 'SHOT', eventData: { angle: 2.5, power: 65, turn: 2 } },
-        { matchId: match.id, playerId: alice.id, eventType: 'COLLISION', eventData: { pen1: 'p1', pen2: 'p2', turn: 2 } },
-        { matchId: match.id, playerId: alice.id, eventType: 'MATCH_END', eventData: { winner: 'player1', reason: 'pen_out' } },
+        {
+          matchId: match.id,
+          playerId: alice.id,
+          eventType: 'SHOT',
+          eventData: {
+            angle: 1.2,
+            power: 80,
+            turn: 1,
+          },
+        },
+        {
+          matchId: match.id,
+          playerId: bob.id,
+          eventType: 'SHOT',
+          eventData: {
+            angle: 2.5,
+            power: 65,
+            turn: 2,
+          },
+        },
+        {
+          matchId: match.id,
+          playerId: alice.id,
+          eventType: 'COLLISION',
+          eventData: {
+            pen1: 'p1',
+            pen2: 'p2',
+            turn: 2,
+          },
+        },
+        {
+          matchId: match.id,
+          playerId: alice.id,
+          eventType: 'MATCH_END',
+          eventData: {
+            winner: 'player1',
+            reason: 'pen_out',
+          },
+        },
       ],
     });
 
@@ -567,6 +746,7 @@ async function seedSampleMatch() {
 }
 
 // ─── Rank helper ──────────────────────────────────────────────────────────────
+
 function getRankName(rating: number): string {
   if (rating >= 2200) return 'GRANDMASTER';
   if (rating >= 2000) return 'MASTER';
@@ -578,6 +758,7 @@ function getRankName(rating: number): string {
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
+
 async function main() {
   console.log('\n🌱 Starting Pen Fight database seed...\n');
 
@@ -588,19 +769,30 @@ async function main() {
   await seedSampleMatch();
 
   console.log('\n✅ Database seeded successfully!\n');
+
   console.log('Test accounts:');
   console.log('  admin@penfight.gg   / Admin@12345  (admin)');
-  console.log('  alice@penfight.gg   / Alice@12345  (Platinum, ~1600 rating)');
-  console.log('  bob@penfight.gg     / Bob@12345    (Gold, ~1400 rating)');
-  console.log('  charlie@penfight.gg / Charlie@12345 (Silver, ~1200 rating)');
-  console.log('  diana@penfight.gg   / Diana@12345  (Master, ~2100 rating)');
-  console.log('  eve@penfight.gg     / Eve@12345    (Bronze, ~1050 rating)');
+  console.log(
+    '  alice@penfight.gg   / Alice@12345  (Platinum, ~1600 rating)',
+  );
+  console.log(
+    '  bob@penfight.gg     / Bob@12345    (Gold, ~1400 rating)',
+  );
+  console.log(
+    '  charlie@penfight.gg / Charlie@12345 (Silver, ~1200 rating)',
+  );
+  console.log(
+    '  diana@penfight.gg   / Diana@12345  (Master, ~2100 rating)',
+  );
+  console.log(
+    '  eve@penfight.gg     / Eve@12345    (Bronze, ~1050 rating)',
+  );
 }
 
 main()
   .catch((e) => {
     console.error('\n❌ Seed failed:', e);
-    process.exit(1);
+    throw e;
   })
   .finally(async () => {
     await prisma.$disconnect();

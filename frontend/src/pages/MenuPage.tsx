@@ -37,7 +37,7 @@ const quickLinks = [
 
 export default function MenuPage() {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, logout, isLoading } = useAuthStore();
   const [showHowToPlay, setShowHowToPlay] = useState(false);
 
   const handleQuickLink = (action: string) => {
@@ -47,6 +47,11 @@ export default function MenuPage() {
     }
 
     navigate(`/${action}`);
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login', { replace: true });
   };
 
   return (
@@ -151,9 +156,7 @@ export default function MenuPage() {
                   transition={{ delay: 0.2 + index * 0.1 }}
                   whileHover={{ y: -5 }}
                   whileTap={{ scale: 0.985 }}
-                  onClick={() =>
-                    navigate(`/game/${mode.id}`)
-                  }
+                  onClick={() => navigate(`/game/${mode.id}`)}
                   className="group relative min-h-[270px] overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.025] p-6 text-left transition-all duration-300 hover:border-white/20 hover:bg-white/[0.045] sm:p-8"
                 >
                   {/* Glow */}
@@ -309,6 +312,27 @@ export default function MenuPage() {
           </div>
         </motion.section>
 
+        {/* ─── Account Actions ────────────────────────────────────────────── */}
+
+        <motion.section
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55 }}
+          className="mb-8 flex justify-center sm:justify-end"
+        >
+          <button
+            onClick={handleLogout}
+            disabled={isLoading}
+            className="group flex items-center justify-center gap-3 rounded-xl border border-red-400/20 bg-red-400/[0.06] px-10 py-5 font-mono text-base font-bold uppercase tracking-[0.2em] text-red-300/80 shadow-lg shadow-red-500/5 transition-all duration-300 hover:border-red-400/40 hover:bg-red-400/[0.12] hover:text-red-200 hover:shadow-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <span className="transition-transform duration-300 group-hover:-translate-x-0.5">
+              ↪
+            </span>
+
+            {isLoading ? 'LOGGING OUT...' : 'LOG OUT'}
+          </button>
+        </motion.section>
+
         {/* Bottom status */}
         <div className="flex flex-col items-center justify-between gap-2 border-t border-white/[0.06] pt-5 sm:flex-row">
           <span className="font-mono text-[8px] tracking-[0.25em] text-white/15">
@@ -328,4 +352,3 @@ export default function MenuPage() {
     </div>
   );
 }
-
